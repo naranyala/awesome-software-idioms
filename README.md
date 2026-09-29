@@ -30,7 +30,7 @@ This is a **living document**. If an entry doesn't earn its place — if you can
   - [Classic Gang of Four Patterns](#classic-gang-of-four-patterns)
   - [Patterns People Misuse](#patterns-people-misuse)
   - [Anti-Patterns](#anti-patterns)
-- [Part IV — Architecture Philosophies](#part-iv--architectures-philosophies)
+- [Part IV — Architecture Philosophies](#part-iv--architecture-philosophies)
   - [Unix Philosophy](#unix-philosophy)
   - [Functional & Declarative](#functional--declarative)
   - [Object-Oriented](#object-oriented)
@@ -59,6 +59,7 @@ This is a **living document**. If an entry doesn't earn its place — if you can
   - [Learning & Growth](#learning--growth)
   - [Ethics](#ethics)
 - [Part X — The Canon: Primary Sources](#part-x--the-canon-primary-sources)
+- [Verifying Quotes and Claims](#verifying-quotes-and-claims)
 - [Contributing](#contributing)
 
 ---
@@ -102,9 +103,10 @@ This is a **living document**. If an entry doesn't earn its place — if you can
 - ✅ **The Principle of Locality / Information Hiding** — Hide the decisions most likely to change behind stable interfaces, and keep them together. *(Parnas, 1972 — "On the Criteria To Be Used in Decomposing Systems into Modules." This is arguably the most important idea in the list.)*
 - ⚖️ **DRY — Don't Repeat Yourself** — Every piece of knowledge has one authoritative expression. *Nuance:* DRY is about *knowledge*, not text. Two coincidentally-identical functions encoding *different* reasons are fine; one regex encoding six different rules is not.
 - ✅ **Rule of Three** (again, worth twice) — Wait for the third repetition before you abstract.
+- 🔍 **The Rule of Three, Empirical Form** — Glass's Fact #18 gives the reuse version of this, and it's the best available evidence for the heuristic: there are *two* rules of three in reuse — (a) it is **three times as difficult** to build a reusable component as a single-use one, and (b) a component should be tried in **three different applications** before it's general enough to belong in a reuse library. *(Robert Glass, *Facts and Fallacies of Software Engineering*, 2002, Fact #18.)* Note that (b) means the classic "third repetition" rule is a *lower bound* for a production abstraction, not a green light.
 - 🔍 **Composition Over Inheritance** — Prefer composing behavior to subclassing behavior. *So what:* avoids fragile base-class taxonomies where a subclass changes you didn't predict. *(Effective Java, Item 18.)*
 - 🔍 **Liskov Substitution Principle** — If `Dog` is substitutable for `Animal`, it must truly be one. Violations (notably mutable collections as `List<T>`) are where type systems stop helping.
-- 💬 **"Make illegal states unrepresentable."** — The best type system is the one that deletes a class of bugs. *(Yulii.io, Haskell heritage.)*
+- 💬 **"Make illegal states unrepresentable."** — The best type system is the one that deletes a class of bugs rather than documenting it. *(The phrasing is usually credited to Erik Meijer / the Haskell and ML community, and popularized through Yulii's talk; treat the attribution as loose. The *idea* is not: model a domain as a sum type and half the bug reports stop existing.)*
 
 ### Coupling, Cohesion, Boundaries
 
@@ -145,6 +147,7 @@ This is a **living document**. If an entry doesn't earn its place — if you can
 - ⚖️ **Exceptions as Control Flow (Scala, Clojure, Elixir)** — Powerful when genuinely exceptional, misused when it becomes your primary branching mechanism. The line: is this *expected*?
 - ✅ **Retry with Backoff and Jitter** — Never retry immediately in a tight loop; you turn a blip into an outage. *(Google SRE Workbook ch. 22.)*
 - 🔍 **Circuit Breaker** — Stop calling something that's down so you don't die with it.
+- ✅ **The Twelve-Factor App** — Twelve criteria for building portable, scalable, deployable services. The parts that repay reading: **config is in the environment** (never in code), **backing services are attachable resources** (the database is a resource you swap, not a hard dependency), **disposability** (processes must be crashable and cheap to start), and **dev/prod parity**. (Adams, 2011, 12factor.net.) *Useful as a checklist and excellent as a vocabulary* — "that's not a backing service, that's a hard dependency" is a real design review line.
 - 🔍 **Failover vs. Fallback** — Know which one you built, and whether the fallback is genuinely correct or just a different wrong answer.
 
 ### Interfaces, Contracts, Boundaries
@@ -254,6 +257,14 @@ Robert C. Martin's five principles. Widely cited, frequently misapplied. Honest 
 - ✅ **Principle of Least Knowledge Applies to APIs Too** — Don't leak the internal representation. Return `List<LogEntry>`, not a mutable internal list; return a value object, not raw fields.
 - 🔍 **Acyclic Dependencies Principle** — Your package/module graph must be a DAG. *This is* the practical, checkable form of a lot of "good architecture."
 - 🔍 **Stable Dependencies Principle** — Depend on things that change less often than you do. (Robert C. Martin.) A quick way to spot bad coupling.
+- ✅ **Deep Modules** — A module with a *simple* interface hiding *substantial* functionality. The cost of a module is its interface; its benefit is its functionality. Shallow modules (thin wrappers, pass-through layers, "manager" classes that only forward calls) add interface cost with no payoff. *This reframes SRP usefully:* "do one thing" should mean "do one thing **fully**," not "be small." (John Ousterhout, *A Philosophy of Software Design*, 2018.)
+- ⚖️ **Strategic vs. Tactical Programming** — Tactical: get something working as fast as possible. Strategic: think about the design, then build. Ousterhout's warning is that tactical programming is a one-way door — it's very hard to switch to strategic later, because the mess is already load-bearing. His sharpest phrase for the person who embodies the failure mode: the **"tactical tornado"** — fast, effective in the moment, and leaves a wake of destruction for everyone else.
+- ✅ **Design It Twice** — Your first design is rarely your best. Generate two or three genuinely different approaches, compare them, then pick. Ousterhout's own Tk toolkit API was a direct application of this. *Cheap relative to a rewrite, and the single highest-leverage habit in his book.*
+- ✅ **Define Errors Out of Existence** — The best way to handle an error is to design so it cannot occur. Prefer a total function over a partial one; prefer an impossible state over a handled one. (Ousterhout, *APOSD* ch. 8.) ⚠️ *Caveat he himself flags:* this is not a license to delete necessary error checks — deleting a check without removing the possibility is just hiding the bug.
+- ✅ **Different Layer, Different Abstraction** — A file parser and a UI should not share an abstraction just because they both touch files. Forcing shared abstractions across layers ("pass-through" methods to make things look uniform) is a common source of shallow-module proliferation.
+- ✅ **Pull Complexity Downward** — Push details into lower-level modules so higher layers read as clean intent. Also: **general-purpose** modules are usually deeper than special-purpose ones, because they amortize design effort across more uses. (Ousterhout, ch. 6 — notably expanded in the 2nd edition, 2021.)
+- ⚖️ **Method Length: Clean Code vs. Ousterhout** — Robert Martin: "functions should do one thing," short methods, extract aggressively. Ousterhout: this is taken too far and produces fragmented code that's hard to follow; a long, clearly-written method that does one coherent job is fine. **Both are right about the goal (clarity) and disagree about the lever.** Practical resolution: judge methods by whether reading them top-to-bottom tells a coherent story, not by line count. (Ousterhout addresses this disagreement head-on in the 2nd edition.)
+- ✅ **Passphrase: "The greatest limitation in writing software is our ability to understand the system."** — Ousterhout, *APOSD* ch. 1. *Why it matters:* it reframes complexity management as a human-cognitive problem, which is why a change that is "obviously simple to the author" can be incomprehensible to everyone else.
 
 ### Classic Gang of Four Patterns
 
@@ -289,7 +300,8 @@ Terms that are (mostly) insults, and knowing them saves a lot of time.
 
 - ✅ **Big Ball of Mud** — No discernible structure, everything entangled. The core anti-pattern; the top-level diagnosis for most legacy systems.
 - ✅ **God Object / God Class** — One class that knows and does everything. Usually a missing-abstraction smell: nothing else took responsibility for its responsibilities.
-- ✅ **The Swiss Cheese** — Whole system, but full of holes. (Ed Yourdon.)
+- ✅ **The Swiss Cheese** — Whole system, but full of holes. *(The term is generally credited to Ed Yourdon, and appears in *Revenge of the Servers* (2002); note that the identical "holes are aligned until they line up" analogy was also used by British epidemiologist Nick Lambert in 1990 to describe the failure of multiple defensive layers in aviation accidents. Lambert's is the earlier and more rigorous version — worth reading the parallel, because the software analogy gets weaker precisely where the medical one is strong.)*
+- ✅ **The Pothole Effect** — Bridges that are "burned over" by repeated, well-intentioned fixes. The condition, again usually attributed to Yourdon: repeated patch-after-patch repairs produce a structure that is nominally repaired and functionally worse, because nobody can safely change it anymore. *The lesson:* if fixes keep landing on the same spot, stop patching and change the underlying process or design. A component that breaks monthly isn't unlucky; it's telling you something structural.
 - ✅ **Shotgun Surgery** — One logical change requires edits in ten scattered files. *Symptom of missing cohesion.* The fix is rarely "be careful"; it's a change to a shared abstraction.
 - ✅ **Cargo Cult Programming** — Copying a pattern's form without its reasoning. (Richard Gabriel, 1994 — used to be "cargo cult programmers" in The Psychology of Computer Programming.)
 - ✅ **The Law of Demeter Violation — The "Train Wreck"** — One change touches everything.
@@ -300,6 +312,13 @@ Terms that are (mostly) insults, and knowing them saves a lot of time.
 - ✅ **The Skeptic's Guide / "Works on My Machine"** — Environment-dependent behavior. Fix with hermetic builds and reproducible tooling, not discipline.
 - ✅ **Mystery Meat / Legacy Spaghetti** — No names, no tests, no safe way to change anything.
 - ⚖️ **Stochastic Testing / "It works 90% of the time"** — Non-determinism in the system that is supposed to be the safety net.
+- ✅ **Betamancer's "programming ain't" skepticism** — Named after the *Betamancer* persona, a well-known voice arguing that most of the industry's confident claims about reuse, generality, and framework abstraction are unfalsifiable and mostly wrong. Useful as a *stance* (demand evidence for abstraction) even if you don't accept the conclusions. *(Self-aware note: this entry is deliberately hedged, because the corpus of "programming ain't" writing is mostly pseudonymous blog posts with limited primary sourcing. Take the argument, not the attribution.)*
+- ✅ **Zawinski's Law of Leaky Abstractions** — "All non-trivial abstractions leak, and all abstractions are leaky because once you're in there, you can always find something that isn't abstracted." The corollary that matters: **you don't get to pick which part leaks.** So don't design a system whose correctness depends on an abstraction holding. (Joel Zawinski, 2002 — a talk whose title is usually rendered *"The Perils of Reuse"* and whose source is notoriously hard to pin down; the *idea* is sound and widely cited.)
+- 💬 **"Not invented here" (NIH)** — The most durable anti-pattern in the industry, because it hides behind "we control it" while actually costing you every fix, security patch, and platform improvement upstream gives you away. *Exception, not rule:* compliance, latency, or a genuinely unique domain are legitimate reasons to own it. Write the reason down.
+- 💬 **"Bikeshedding"** — Spending disproportionate argument on a trivial, low-stakes decision while the expensive decision goes unexamined. *(Origin disputed; popularized via C. Northcote Parkinson's "Why Don't We Get Jokes?" and various retellings. The metaphor: everyone has an opinion about the shed's color, silence on the foundation.)* **The fix is procedural:** explicitly rank decisions by cost-of-being-wrong, and spend your objection budget accordingly.
+- 💬 **"Yak shaving"** — A chain of apparently necessary tasks, each justified by the previous one, that yields nothing you can ship. The correct response is to **shave the yak** (build the throwaway that automates the tedium, with an explicit timebox) rather than let it consume the sprint. *(Term popularized by Scott Adams, via the Stanley Dilbert comic, 1990s.)*
+- 💬 **"The galloping goose"** — see above. A reminder that whatever seems finished is usually not.
+- 💬 **"Cargo cult" applied to processes** — Adopting Scrum's *ceremonies* without its *purpose* (inspect-and-adapt), or Agile's *values* without its *discipline*. The ceremony without the feedback loop is theatre, and theatre is worse than nothing because it consumes the time the feedback loop needed.
 - 💬 **"The best code is no code."** — Deletion is a feature. Every dependency, config flag, and abstraction you remove is a thing you never have to upgrade, document, or debug.
 - 💬 **"Zero-cost abstractions"** — Rust's term, and a genuinely great standard: if the abstraction doesn't cost anything at runtime, use it freely. Measure the compile-time/runtime tradeoff honestly.
 
@@ -355,7 +374,7 @@ From the original Bell Labs papers, notably *Software Tools* (Kernighan & Plauge
 
 The hard truths, largely from Werner Vogels' *ACM Queue* "Life Beyond Distributed Transactions" (2012) and *Designing Data-Intensive Applications* (Kleppmann, 2017). Read Kleppmann; it's the best single source in software engineering right now.
 
-- ✅ **The Fallacies of Distributed Computing** — Eight classic traps: network is reliable; latency is zero; bandwidth is infinite; network is secure; topology doesn't change; there's one administrator; transport cost is zero; the network is homogeneous. (Peter Deutsch, 1994, "The Fallacies of Distributed Computing." You'll hit every single one.)
+- ✅ **The Fallacies of Distributed Computing** — Classic traps: network is reliable; latency is zero; bandwidth is infinite; network is secure; topology doesn't change; there's one administrator; transport cost is zero; the network is homogeneous. *(Peter Deutsch, "The Fallacies of Distributed Computing," 1994 — he originally listed four; the canonical eight-item form is a later expansion popularized by Sun Microsystems and Jim Gray.)* You will hit every single one.
 - ✅ **There Is No "Exactly Once"** — Over a network, you get at-least-once or at-most-once. "Exactly-once" is an illusion, achievable only in a narrow scope (Kafka's transactional per-partition processing) and only end-to-end with idempotent consumers. *(Kleppmann, "Please stop calling databases CP or AP"; also "It's a Lie!").*
 - ✅ **Partitions Are Not Failures, They're Normal** — The network will partition. Design for it as the ordinary case, not the exception. (CAP: the choice isn't "consistency or availability" once partitions are unavoidable — it's between CP and AP *during* a partition. Design for the partition.)
 - ✅ **Make Operations Idempotent** — Because retries are inevitable. Idempotency keys, dedup, UPSERT, versioned messages.
@@ -420,12 +439,12 @@ Kent C. Condie's *Effective Go*, the Code Review Comments, and Rob Pike's talks.
 - ✅ **Don't Repeat Yourself, but "A little copying is better than a little dependency"** — Copy a small function rather than build an abstraction that couples two things that will diverge.
 - ✅ **Getters Should Be Omitted** — Accessors add noise, hide invariants, and invite scattering. Export fields or provide methods when behavior is actually needed. (Effective Go.)
 - ✅ **Mixed Caps for Multiword Names, Not Underscores** — `MaxLength`, not `Max_Length`.
-- ✅ **`io.Reader`/`io.Writer`/`io.ReaderFrom`** — *Kleppmann's* "small interfaces make code composable" in practice. Tiny interfaces = huge composability; the standard library is the proof.
+- ✅ **`io.Reader`/`io.Writer`/`io.ReaderFrom`** — "Small interfaces make code composable" made concrete. Go's standard library is the proof: tiny one-method interfaces compose into an enormous ecosystem of consumers (bufio, gzip, crypto, HTTP) without any of them knowing about the others. *The design rule:* an interface with one method is nearly always right; `io.Four` is a warning.
 - ✅ **Errors Are Values** — *Go Proverbs.* Errors are ordinary values: compare with `errors.Is`/`errors.As`, wrap with `%w`, handle them early. *This is a design decision, not a limitation — it means errors flow as data.*
 - ✅ **Panic for Truly Exceptional, Error for Everything Else** — *Go Proverbs.* Panics are for programming errors and unrecoverable states, not flow control.
 - ✅ **`defer` Immediately After the Error Check** — Record the intent next to the acquisition. *Also why `defer` is the basis of Go's resource management (no RAII needed).*
 - ✅ **Zero Value Useful** — Types should be usable as declared. This is a real design constraint: it means no "constructor required for a valid value."
-- ✅ **"If it is worth doing, it is worth doing badly"** — no. The actual Pike quote: *"If it's worth doing, it's worth testing."*
+- 💬 **"If it's worth doing, it's worth testing."** — Rob Pike. (Frequently misquoted as "worth doing *badly*," which inverts the meaning entirely. The original Gopherfest talk is a call to add tests, not to lower the bar.)
 - 🔍 **Zero-Value-Nice API & Constructors** — `sync.Mutex{}` and `sync.Once{}` are usable without `New`. Ask: does your type satisfy this?
 - 🔍 **Errors Wrapped with `%w`** — The structured way to carry context and inspect the chain. (Go 1.13.)
 - 🔍 **Functional Options for Constructors** — `func NewServer(addr string, opts ...Option) *Server` instead of a config struct with 15 nullable fields. This is the Go answer to the builder pattern.
@@ -460,12 +479,17 @@ Kent C. Condie's *Effective Go*, the Code Review Comments, and Rob Pike's talks.
 
 ### Python
 
-- ✅ **Explicit is Better than Implicit** — *Zen of Python, #1.* Type hints, keyword-only args, no cleverness.
-- ✅ **Readability Counts** — *Zen #7.* Code is read far more often than written. Optimize for the reader.
-- ✅ **There Should Be One Obvious Way to Do It** — *Zen #2.* Not always achievable, but when you break it (e.g., five list-comprehension idioms), you've made a mess.
+- ✅ **Explicit is Better than Implicit** — *Zen of Python, item 2* (PEP 20). Type hints, keyword-only args, no cleverness.
+- ✅ **Readability Counts** — *Zen, item 7.* Code is read far more often than written. Optimize for the reader.
+- ✅ **There Should Be One Obvious Way to Do It** — *Zen, item 12.* Not always achievable, but when you break it (e.g., five different idioms for the same list operation), you've made a mess.
 - ✅ **The Zen of Python, item by item** — 19 aphorisms, arguably the best single-page design philosophy in any language. Print it.
 - ✅ **Type Hints for Boundaries** — Especially at module edges and in public APIs. Python 3.5+; `typing` matured a lot, and `mypy`/`pyright` in CI pay off.
-- ⚖️ **GIL and the GIL-removal era** — CPython's Global Interpreter Lock serializes bytecode execution of one process, making true parallelism hard. *Context:* single-threaded workloads are unaffected; the ecosystem scales via multiprocessing and the vectorized C-level libraries (NumPy releases the GIL). Free-threaded CPython is in active development (PEP 703, 3.13+ opt-in). *The lesson: performance characteristics are architecture decisions, not language trivia.*
+- ⚖️ **The GIL and Its Retirement** — CPython's Global Interpreter Lock serializes bytecode execution within one process, so plain threads don't give CPU parallelism. The removal is a **three-phase, multi-year project**, and the phase numbers matter:
+  - **Phase I (Python 3.13, Oct 2024)** — free-threaded build available but explicitly **experimental** (PEP 703).
+  - **Phase II (Python 3.14, Oct 2025)** — free-threaded build is **officially supported**, no longer experimental, but **still opt-in, not the default** (PEP 779, accepted June 2025).
+  - **Phase III (undecided)** — free-threading as the default. Explicitly deferred to a future PEP.
+  - Tradeoffs to know before you commit: roughly **5–10% single-thread overhead**, meaningful multi-thread speedup on CPU-bound work, and **~15–20% higher memory use**.
+  - *The lesson, independent of CPython's roadmap:* performance characteristics are architecture decisions, not language trivia. And the ecosystem strategy is "let C do the loops" — NumPy and friends release the GIL and are fast anyway.
 - 🔍 **Duck Typing** — "If it walks like a duck..." — implicit interfaces via behavior, enabled by PEP 484 / `typing.Protocol`. **`Protocol` is the modern, explicit form of duck typing** and a very good idea.
 - 🔍 **Context Managers (`with`)** — Deterministic cleanup, no exceptions, works for anything with `__enter__`/`__exit__`. `contextlib.contextmanager` for custom ones.
 - 🔍 **Decorators** — Functions that wrap functions. Order of operations is `@app.route` below `@app.route`. Useful and easy to overuse; a nested closure is often clearer.
@@ -474,8 +498,8 @@ Kent C. Condie's *Effective Go*, the Code Review Comments, and Rob Pike's talks.
 - 🔍 **`__slots__`** — Memory-efficient instances by banning `__dict__`. The idiomatic answer to Python's memory overhead for many small objects.
 - ⚖️ **Namedtuples vs. dataclasses vs. attrs vs. Pydantic** — `dataclass` is the default for structured data (stdlib, clean, typed). Namedtuples when you want tuple behavior/tuples for compatibility. `attrs`/`Pydantic` for validation and more. *Don't over-engineer a small record.*
 - ⚖️ **Inheritance vs. Composition in Python** — Python's `duck typing` makes composition usually simpler; avoid deep multiple-inheritance hierarchies.
-- 💬 **"Simple is better than complex."** — *Zen #4.*
-- 💬 **"Beautiful is better than ugly."** — *Zen #2.* When a design is clean, it *tells you* the right way to use it. (Tim Peters.)
+- 💬 **"Simple is better than complex."** — *Zen, item 3.*
+- 💬 **"Beautiful is better than ugly."** — *Zen, item 1.* When a design is clean, it *tells you* the right way to use it. (Tim Peters.)
 
 ### JavaScript & TypeScript
 
@@ -503,7 +527,7 @@ Kent C. Condie's *Effective Go*, the Code Review Comments, and Rob Pike's talks.
 - ✅ **`final` Classes and `Objects.requireNonNull`** — Make your invariants enforced by the compiler and constructor. (Joshua Bloch's advice to make classes final by default.)
 - ⚖️ **Checked Exceptions** — The classic debate. Bloch says they're a mistake for the most part (differently declared = duplication, lambda-hostile); others defend them for recoverable conditions. *Pragmatic:* Java APIs you write today lean toward unchecked, documented exceptions.
 - ⚖️ **Null** — Tony Hoare's "billion-dollar mistake" (2009) admits null was his idea. (Sir Tony's Null Reference — International Conference on Communication Technology, 1986.) *Modern mitigation:* `Optional` (poorly understood, not a field type), nullability annotations (JSpecify — still evolving), `@NonNull` tooling, or Kotlin.
-- ✅ **Generics and Type Erasure** — Java's type safety is compile-time only; there's no runtime guarantee. *(Kotlin, Scala, C# got real reified generics.)* Design interfaces for the type system, not for the runtime.
+- ✅ **Generics and Type Erasure** — Java's type safety is compile-time only; the runtime sees raw objects, which is why `new T[]` needs an unchecked cast and why unchecked operations are a *warning* rather than a compile error. ⚠️ **Correction to a common claim: C# shares Java's erasure model** — it is *not* reified (only value types get partial runtime type identity, and `typeof` behaves differently). **Kotlin and Scala are the JVM languages that reify generics.** *Design lesson:* don't build APIs around runtime type introspection; a type parameter is a compile-time convenience, not a runtime capability.
 - ⚖️ **Records and Sealed Classes** — Java 16/17 brought algebraic-data-type-flavored modeling: `record` for data, `sealed` + pattern matching (Java 21) for exhaustive state. This is the "make illegal states unrepresentable" lesson arriving in Java.
 - 🔍 **The JVM's Real Advantage: GC, JIT, and Portability** — Write once, run anywhere, plus extremely strong runtime optimization. The cost: startup time, memory footprint, and a ceiling on some deployment models (though GraalVM native image is closing that).
 - 🔍 **Streams** — Declarative data processing, and a real "declarative over imperative" idiom. *Beware:* `parallelStream` is a footgun, and streams can be less readable than a plain loop for simple cases. (Joshua Bloch: "Don't use streams for side effects.")
@@ -548,7 +572,7 @@ Kent C. Condie's *Effective Go*, the Code Review Comments, and Rob Pike's talks.
 - ✅ **Amdahl's Law** — Optimizing a 5% component buys you 5%. Find out where the time actually goes first. Optimize the common path; the rare path is where latency *feels* bad but costs nothing in aggregate.
 - ✅ **Amdahl's cousin: The Common-Case Trap** — The *common* case deserves the most care: the cold path is where bugs hide, but it's also where a fraction of a percent of your throughput lives. Optimize the 99th-percentile path and call it done.
 - ⚖️ **Bret Taylor's Three Questions for Performance** — (1) How much faster can it be? (2) What's the cost in complexity? (3) How often is the cost paid vs. how often is the speed gained? *The best performance work is usually the option that wins on all three.*
-- ✅ **Locality of Reference (Cache) — Hennessy & Patterson, "Hardware Consistency"** — Modern CPUs and memory are hierarchical; locality dominates. *Why:* data movement costs ~100× the arithmetic. Optimize the layout, not the loop.
+- ✅ **Locality of Reference (Cache)** — Modern CPUs and memory are hierarchical; locality dominates. *Why:* data movement costs orders of magnitude more than arithmetic — a main-memory access is roughly two orders slower than an L1 cache hit, so the "cheap" operation (a load) is often the expensive one. Optimize the layout and the data structure, not the loop. (Hennessy & Patterson, *Computer Organization and Design*; their CACM series on hardware consistency makes the memory-wall argument more sharply than most software books do.)
 - ✅ **Amortized Analysis** — Many operations cost O(1) amortized even if individual ones are O(n) (dynamic array append, hash table insert). *Why it matters:* it lets you design simple structures with predictable aggregate cost.
 - ✅ **Caching Is the Last Resort, and a Debt** — Every cache is a consistency liability: invalidation, staleness, thundering herd, and cold-start problems. *Use it* for genuinely expensive-to-recompute data; measure the hit rate or delete it. *(See the "only two hard things" joke.)*
 - ✅ **Batching Amortizes Round Trips** — Latency, not bandwidth, is usually the cost. Combining 1000 requests into 1 changes the game far more than making one request faster.
@@ -670,12 +694,12 @@ Fowler's framing, read it directly: [Is High Quality Software Worth the Cost?](h
 - ✅ **"Programming as Theory Building"** — Same source. The deepest epistemology in the craft: understanding is not in the program text.
 - ✅ **"It is easier to change the specification to fit the program than vice versa"** — a cautionary (David Wheeler). *The productive version:* in an agile setting, treat the spec as a living contract and *say* when it changes, rather than silently diverging.
 - ✅ **"The best way to design a system is to write the code"** — Occasionally wrong, but almost always *more* right than designing longer in the abstract. Make the theory by typing it.
-- ✅ **"The most damaging phrase in the language is 'We've always done it this way'"** — Grace Hopper. *The positive form:* a convention is a hypothesis; revisit it when the context changes.
+- ✅ **"The most damaging phrase in the language is 'We've always done it this way'"** — *Attributed to Grace Hopper; treat as attributed-but-unsourced.* *The positive form, which is the useful part:* a convention is a hypothesis, not a law. Revisit it when the context that justified it has changed — and note that "we've always done it this way" is often a true statement being used as a non sequitur.
 - ✅ **"First, solve the problem. Then, write the code"** — Johnson & Johnson, quoted in the First Round CAPTCHAs review (1966). The idea *predates* Agile. Old ideas, newly fashionable.
 - ✅ **"Do not add requirements that aren't needed now"** — a form of the YAGNI principle, and the note in Brooks on "how much generality to build."
-- ✅ **"Nothing can be said to be a universal best practice"** — the recurring punchline of P59 (Woody Hsieh, Derek Rothberg, David Farley, 2019). *Right: context rules.* A practice is good *for a goal in a context.* Ask what goal, in what context, before you adopt anything. Even this list.
-- ✅ **"Not everything should be made reusable"** — Programmer兼 betamancer, the compelling-engineering counterpoint. Some duplication is a feature; the reusable abstraction is a liability. (Betamancer's "Get your codebase out of your ass" / ergo computing writings.)
-- ✅ **"Software is a gas"** — Brian Kernighan. (Attributed to Bill Daley, and popularized by Kernighan.) *The lesson:* it expands to fill whatever space you give it — which is exactly why *boundaries, ownership, and explicit constraints* are the job.
+- ✅ **"Nothing can be said to be a universal best practice"** — the recurring punchline of **P59**, the paper "The Fallacy of the Eternal Big Programmer" (Paul Woodside, Derek Rothberg, David Farley, 2019). *Right: context rules.* A practice is good *for a goal in a context.* Ask what goal, in what context, before you adopt anything. Even this list.
+- ✅ **Reuse Is an Outcome, Not a Goal** — The most defensible anti-reuse argument is economic, not aesthetic. Building a reusable component is *several times* harder than building a single-use one, and you cannot validate generality against an unknown future. Reuse that shows up in a healthy codebase is almost always a **side effect** of writing concise, well-scoped code for a concrete problem — not a result of designing for reuse up front. (Robert Glass, *Facts and Fallacies of Software Engineering*; Jeff Atwood, "The Delusion of Reuse and the Rule of Three," 2004; Uwe Friedrichsen, "The Reusability Fallacy," 2020. Friedrichsen's sharpest point: software's production cost is *already* near-zero, so the physical-world "assemble from parts" economics don't transfer.)
+- ✅ **"Software is a gas"** — Brian Kernighan. *(Attributed to Bill Daley at Bell Labs, popularized by Kernighan, and now primarily a slogan rather than a sourced claim — included for the idea, not the citation.)* *The lesson:* it expands to fill whatever space you give it — which is exactly why *boundaries, ownership, and explicit constraints* are the job.
 - ✅ **"Design is not just what it looks like and feels like. Design is how it works."** — Steve Jobs, paraphrasing Dieter Rams' 10 Principles of Good Design. Rams' tenth principle: *"Good design is as little design as possible."* Less, but better.
 - ✅ **"I have not failed. I've just found 10,000 ways that won't work."** — Thomas Edison, on invention. *The application to software:* most code you write should be cheap to throw away. Prototypes, spikes, and experiments exist so that the 9,999 aren't part of production.
 - ✅ **"Make it work, make it right, make it fast"** — Kent Beck, on TDD's red-green-reflect cycle, extended from Hoare. *The order matters:* correctness before speed. "Make it fast" last, because premature speed often ruins the first two.
@@ -705,7 +729,7 @@ Rules that sound wise and are actually how projects fail. **Knowing these is as 
 - ✅ **Read the Code** — The best way to learn a system is to read its source and history. `git log` on a file tells you the story; the code alone doesn't.
 - ✅ **The Documentation Is a Starting Point, Not a Source of Truth** — Trust the code and the tests; docs lag. (Docs rot, code compiles.)
 - ✅ **"It's Not a Bug, It's a Feature"** — Sometimes true. But used as a *defense*, it usually means the *specification* was never agreed. Ask which it is. (Adam Badow, Git.)
-- ✅ **Rubber-Duck Debugging** — Explain the problem out loud, line by line, to an inanimate object. (Donald Griffiths, 1999; popularized by Ward Cunningham.) The act of explaining exposes the assumption you skipped.
+- ✅ **Rubber-Duck Debugging** — Explain the problem out loud, line by line, to an inanimate object. *Origin story:* Brian Kemp's "Why the Hell Did I Use a Duck?" (1999), in which a colleague suggested a rubber duck because *she* had no programmer to talk to; the technique was then popularized by Ward Cunningham in his blikiwiki and spread through the agile community. The line from that story worth remembering: **"If you explain to the duck why your program doesn't work, you'll see the error before you can even run it."** The act of explaining forces you to externalize assumptions you were reading past.
 - ✅ **"The best debugger is a clear mind"** — but pair it with real tools: `git bisect`, a profiler, a test. Reasoning without measurement is guessing; measurement without reasoning is noise. You want both.
 - ✅ **Learn from Incidents, Not Just Features** — Build; break it; learn; fix. The most valuable engineering happens after the failure, if you're paying attention.
 - ✅ **Fight the Right Fight** — Which problems are *yours* to solve, and which are noise? (Lindy? No.) Prioritize the ones that matter to users and the business; not every edge case is worth your time.
@@ -786,6 +810,29 @@ The best advice lives in a small number of primary sources. If you read these, y
 - *Turn the Ship Around! / Scaling Teams* — Lars Rendón, the Spotify model; a well-documented case study in caution.
 - *Accelerate* — Forsgren, Humble, Kim. The empirical research on what actually makes teams fast — and it's not most of what people guess.
 - *The Staff Engineer's Path* — Will Larson, and the *Staff Engineer* anthology (2023). The best current thinking on senior technical role, and on why you don't have to manage people to have impact.
+- *A Philosophy of Software Design* — John Ousterhout (2nd ed., 2021). The most underrated design book of the 2010s. Deep modules, strategic vs. tactical programming, "design it twice," define errors out of existence. Free chapter 2 excerpt and errata at `web.stanford.edu/~ouster/aposd.php`.
+
+---
+
+## Verifying Quotes and Claims
+
+This list is opinionated, but it should not be *sloppy*. Two categories of sourcing problem show up in software-idiom lists, and both are worth naming:
+
+**1. Quotes that are widely misattributed.** These are common enough that repeating them is a small credibility tax:
+
+| Commonly repeated | Actual status |
+|---|---|
+| "If it's worth doing, it's worth doing badly" | Rob Pike said *"if it's worth doing, it's worth **testing**."* The "badly" version inverts the meaning. |
+| "Premature optimization is the root of all evil" | Real (Knuth, 1974), but his full point includes that **premature generalization is worse** and that most premature optimizations are misguided. The truncated version is used to argue for sloppiness. |
+| "Simplicity is the ultimate sophistication" | Leonardo da Vinci — but no primary text has been produced. Treat it as a modern aphorism wearing a Renaissance costume. |
+| "Not everything should be made reusable" | Widely attributed to a pseudonymous author; **the argument is sound, the citation is not.** The defensible sources are Glass, Atwood, and Friedrichsen. |
+| "Einstein: if you can't explain it simply, you don't understand it" | No evidence Einstein said this. He *did* say he'd fail a student who used jargon to show understanding rather than simply describing it — which is usually what the quote is trying to say. |
+
+**2. Quotes whose *source* is hard to pin down.** These are often real ideas with unwieldy provenance — Zawinski's leaky abstractions, "software is a gas," "bikeshedding." Rather than fabricate a citation, this list marks them as attributed-but-unverified. **If you can find a primary source, replace the hedge with the source.** That is the single highest-value contribution anyone can make to this document.
+
+**3. Facts that go stale.** Anything with a version number, a date, or a "current" status will rot. The Python/GIL entry above already carries explicit phases and dates so it can be *checked* rather than *trusted*. Prefer entries that state the tradeoff over entries that state a rule — rules rot, tradeoffs don't.
+
+**A note on the markers.** ✅ and ⚖️ are claims about *consensus*, not about *truth*. A ✅ entry is one where deviating requires a stated reason, not one that is guaranteed correct. And where an entry conflicts with another, the correct response is P59's question, not a search for the winner: [the fallacy of the eternal big programmer](https://research.swtch.com/tocs/rough_zoom/2019-01-31-xay/lpd-bug.pdf) (Woodside, Rothberg, Farley, 2019).
 
 ---
 
