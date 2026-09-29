@@ -5,11 +5,13 @@
 
 This is a **living document**. If an entry doesn't earn its place — if you can't explain it to a junior in one breath and defend it in a design review — cut it. The list is opinionated on purpose: there is no neutral "best practice," only tradeoffs you've chosen to name.
 
+It is organized by **lifecycle stage**, because advice without a stage is advice you'll never remember at the moment you need it. The map below shows what's covered where — including the stages most such lists neglect, like requirements, release, and retirement.
+
 ---
 
 ## Table of Contents
 
-- [How to Use This List](#how-to-use-this-list)
+- [The Software Lifecycle Map](#the-software-lifecycle-map)
 - [Part I — Foundational Axioms](#part-i--foundational-axioms)
   - [Complexity & Simplicity](#complexity--simplicity)
   - [Abstraction & Design](#abstraction--design)
@@ -18,19 +20,19 @@ This is a **living document**. If an entry doesn't earn its place — if you can
   - [State, Time, and Ordering](#state-time-and-ordering)
   - [Error Handling](#error-handling)
   - [Interfaces, Contracts, Boundaries](#interfaces-contracts-boundaries)
-- [Part II — Engineering Practices](#part-ii--engineering-practices)
+- [Part II — Requirements & Scope](#part-ii--requirements--scope)
+- [Part III — Engineering Practices](#part-iii--engineering-practices)
   - [Testing](#testing)
   - [Version Control & Collaboration](#version-control--collaboration)
   - [Refactoring](#refactoring)
   - [Code Review](#code-review)
   - [Documentation](#documentation)
-- [Part III — Design Principles and Patterns](#part-iii--design-principles-and-patterns)
+- [Part IV — Architecture & Design](#part-iv--architecture--design)
   - [SOLID](#solid)
   - [Other Named Principles](#other-named-principles)
   - [Classic Gang of Four Patterns](#classic-gang-of-four-patterns)
   - [Patterns People Misuse](#patterns-people-misuse)
   - [Anti-Patterns](#anti-patterns)
-- [Part IV — Architecture Philosophies](#part-iv--architecture-philosophies)
   - [Unix Philosophy](#unix-philosophy)
   - [Functional & Declarative](#functional--declarative)
   - [Object-Oriented](#object-oriented)
@@ -45,22 +47,32 @@ This is a **living document**. If an entry doesn't earn its place — if you can
   - [Java & JVM](#java--jvm)
   - [SQL & Databases](#sql--databases)
   - [Shell & Automation](#shell--automation)
-- [Part VI — Performance & Scale](#part-vi--performance--scale)
-- [Part VII — Security Mindset](#part-vii--security-mindset)
-- [Part VIII — Team & Process Mentalities](#part-viii--team--process-mentalities)
+- [Part VI — Release, Deployment & Rollout](#part-vi--release-deployment--rollout)
+- [Part VII — Operations & Observability](#part-vii--operations--observability)
+- [Part VIII — Performance & Scale](#part-viii--performance--scale)
+- [Part IX — Security Mindset](#part-ix--security-mindset)
+- [Part X — Team & Process Mentalities](#part-x--team--process-mentalities)
   - [Agile Flavors](#agile-flavors)
   - [Technical Debt](#technical-debt)
   - [Estimation & Deadlines](#estimation--deadlines)
-  - [On-call, Support, and Ownership](#on-call-support-and-ownership)
   - [Product & User Empathy](#product--user-empathy)
-- [Part IX — Software as a Craft](#part-ix--software-as-a-craft)
+- [Part XI — Cross-Cutting Concerns](#part-xi--cross-cutting-concerns)
+  - [Internationalization & Localization](#internationalization--localization)
+  - [Accessibility](#accessibility)
+  - [Configuration & Secrets](#configuration--secrets)
+  - [Dependency Management](#dependency-management)
+  - [Dependencies Between the Concerns](#dependencies-between-the-concerns)
+- [Part XII — Retirement & Decommission](#part-xii--retirement--decommission)
+- [Part XIII — Software as a Craft](#part-xiii--software-as-a-craft)
   - [Wisdom, Proverbs, Aphorisms](#wisdom-proverbs-aphorisms)
   - [Anti-Wisdom](#anti-wisdom)
   - [Learning & Growth](#learning--growth)
   - [Ethics](#ethics)
-- [Part X — The Canon: Primary Sources](#part-x--the-canon-primary-sources)
+- [Part XIV — The Canon: Primary Sources](#part-xiv--the-canon-primary-sources)
 - [Verifying Quotes and Claims](#verifying-quotes-and-claims)
 - [Contributing](#contributing)
+  - [Quick template](#quick-template)
+  - [The One Rule Above All](#the-one-rule-above-all)
 
 ---
 
@@ -68,7 +80,7 @@ This is a **living document**. If an entry doesn't earn its place — if you can
 
 **Three ways in, depending on why you're here:**
 
-1. **Onboarding** — read Part I and Part IX. That is the load-bearing 10%.
+1. **Onboarding** — read Part I, Part XIII (*Software as a Craft*), and the Lifecycle Map above. That is the load-bearing 10%.
 2. **Design review** — jump to the section for the decision in front of you. Name the tradeoff out loud before you pick a side.
 3. **Team ritual** — pick one entry per week. Read it, argue about it in standup, decide whether your codebase already obeys or violates it, and write down the verdict in an ADR. That last step is the one that makes it stick.
 
@@ -80,6 +92,30 @@ This is a **living document**. If an entry doesn't earn its place — if you can
 | ✅ | **Broadly settled.** Deviating requires a stated reason. |
 | 🔍 | **Tool/technique**, not a principle. Useful, contextual, eras. |
 | 💬 | **A phrase worth saying out loud** in a design review. |
+
+
+## The Software Lifecycle Map
+
+This catalog is organized to match how software actually gets built, so that every stage has a home and the gaps are visible rather than assumed. The ⚖️/✅ markers still apply per entry.
+
+| Stage | Part | What's there |
+|---|---|---|
+| **Ideate & scope** | [II](#part-ii--requirements--scope) | Specs as hypotheses, acceptance criteria, vertical slices, non-goals, ADRs |
+| **Design & architect** | [I](#part-i--foundational-axioms), [IV](#part-iv--architecture--design) | Complexity, coupling, boundaries, SOLID, patterns, Unix/functional/distributed philosophy |
+| **Build** | [III](#part-iii--engineering-practices), [V](#part-v--language--runtime-idioms) | Testing, VCS, refactoring, review, plus per-language idioms |
+| **Release & deploy** | [VI](#part-vi--release-deployment--rollout) | Expand/migrate/contract, feature flags, progressive delivery, rollback, SemVer |
+| **Run & operate** | [VII](#part-vii--operations--observability) | Observability pillars, SLOs, backups, RTO/RPO, runbooks, load-shedding |
+| **Optimize** | [VIII](#part-viii--performance--scale) | Measure-first, Amdahl, locality, batching, tail latency |
+| **Secure** | [IX](#part-ix--security-mindset) | Threat modeling, authN/authZ, secrets, supply chain, secure-by-default |
+| **Sustain & grow** | [X](#part-x--team--process-mentalities) | Agile, technical debt, estimation, product empathy, team ownership |
+| **Cross-cutting** | [XI](#part-xi--cross-cutting-concerns) | i18n, accessibility, configuration, dependency management |
+| **Retire** | [XII](#part-xii--retirement--decommission) | Sunsets, deprecation policy, Strangler Fig, data retention, deletion |
+| **Mindset & canon** | [I](#part-i--foundational-axioms), [XIII](#part-xiii--software-as-a-craft), [XIV](#part-xiv--the-canon-primary-sources) | Axioms, proverbs, anti-wisdom, ethics, primary sources |
+
+The two parts that most lists under-serve are here because they're where the expensive mistakes live: **II (Requirements)** and **XII (Retirement)**. Nearly every part of a system is built long before anyone discovers what it should have been, and every codebase eventually becomes an archaeological site. Planning for both is cheaper than archaeology.
+
+---
+
 
 ---
 
@@ -161,7 +197,35 @@ This is a **living document**. If an entry doesn't earn its place — if you can
 
 ---
 
-## Part II — Engineering Practices
+
+---
+
+## Part II — Requirements & Scope
+
+The stage most lists skip, and where the most expensive mistakes are made. Everything here is downstream of a decision you already made.
+
+- ✅ **The Spec Is a Hypothesis, Not a Contract** — You are writing down a belief about what's valuable, to be tested against reality. Writing it in confident declarative prose is how it stops looking like a guess. *So what:* if the doc can't be wrong, nobody will check it.
+- ✅ **Definition of Ready** — Before work starts, agree what makes it startable: the problem is understood, the acceptance criteria are written, the unknowns are named. *So what:* without it, "ready" means whatever the person who said it meant, and mid-sprint discovery is the most expensive kind.
+- ✅ **Acceptance Criteria Are the Real Spec** — Prose descriptions are aspirations; acceptance criteria are checkable. Write them as the tests you'd write, because that's exactly what they should become. *(Given-When-Then is popular, but the requirement is testability, not the syntax.)*
+- ✅ **User Stories Are Unit of Negotiation** — "As a…, I want…, so that…" is a *reminder of a conversation*, not a spec. Its value is that it names the user and the goal. Its danger is that a well-formed story still contains no information. *(Jeff Patton, *User Story Mapping*.)*
+- ✅ **Vertical Slices, Not Layers** — Deliver one end-to-end path that works, not the entire data layer followed by the entire UI. A slice touches every layer, so it proves the architecture. (This is the "walking skeleton" / "tracer bullet" idea — Kent Beck's *TDD by Example* popularized the tracer bullet: aim a test that fails, then build the minimum to pass it.)
+- ✅ **Explicit Non-Goals** — Write down what you are *not* doing and why. This is the highest-leverage line in most design docs, because the unstated thing is the thing someone will assume is merely forgotten. *So what:* it converts a future argument into a future question.
+- ✅ **Ask About the Past, Not the Future** — People are terrible at predicting their own future behavior and excellent at recalling the last time. Every requirements interview should be about a real, recent, specific instance. (Rob Fitzpatrick, *The Mom Test* — a book about how to interview without leading, which is really a book about requirements elicitation.)
+- ✅ **Users Are Experts in the Problem, Not the Solution** — "Add a button" is a request, not a requirement. The requirement is the job behind it. *So what:* building the requested solution confidently is the most common way to build the wrong thing perfectly.
+- ✅ **Reduce the Cost of Being Wrong, Don't Eliminate It** — Uncertainty is irreducible; the engineering question is only how expensive a wrong guess is. Spikes, prototypes, MVPs, feature flags, A/B tests — these are all the same move: buy information cheaply before committing. *(Product safety, Sterrett; Ries, *Lean Startup*.)*
+- ✅ **Unhappy Paths Are Where the Requirements Live** — The happy path is usually obvious once specified. The requirements work is: what happens on partial failure, double submission, cancellation after fulfillment, concurrent edit, expired credential, clock skew, partial refund? *So what:* the happy path gets built in a day; the unhappy paths are the actual product, and they're where the incidents come from.
+- ✅ **Requirements Rot Like Everything Else** — A spec that isn't attached to code and tests goes stale, and worse, it stays *believed*. Keep it in version control next to the code, and treat the executable tests as the authoritative version.
+- ⚖️ **Write It Down vs. Just Build It** — Writing specs is expensive and specs invite becoming attached to a plan that reality invalidates. Building without any spec is also expensive, and produces code nobody can navigate. *Synthesis that actually works:* a **one-page design doc for anything that crosses a module boundary**, and no doc for anything smaller. See ADR practice below.
+- 🔍 **The ADR — Write Down the Decision, Not the Plan** — Context, options considered, decision, consequences, date. Fifteen minutes. The "options considered" section is the one that pays off two years later, when someone proposes the thing you rejected and asks why not. *(Michael Nygard's ADR format; popularized by ThoughtWorks.)*
+- 🔍 **Pre-Mortem** — Before starting, ask: "It's six months later and this failed. Why?" Imagined failure produces more and better risk discussion than asking for risks, because failures are easier to discuss than probabilities. (Gary Klein.)
+- 🔍 **Traceability** — Link requirement → design → test → commit. It's bureaucracy at small scale and genuinely lifesaving at large scale (regulated, safety-critical, or multi-team).
+- 💬 **"The requirements will change."** — Not a defeatism; a planning assumption. If you believe it, you build for change (loose coupling, versioning, backward compatibility). If you don't believe it, you're not allowed to be surprised later.
+- 💬 **"Say no early, kindly, with a reason."** — Scope creep is a negotiation failure, not a requirements failure. The cheapest time to cut scope is before anyone has built anything.
+
+
+---
+
+## Part III — Engineering Practices
 
 ### Testing
 
@@ -235,7 +299,10 @@ This is a **living document**. If an entry doesn't earn its place — if you can
 
 ---
 
-## Part III — Design Principles and Patterns
+
+---
+
+## Part IV — Architecture & Design
 
 ### SOLID
 
@@ -324,8 +391,6 @@ Terms that are (mostly) insults, and knowing them saves a lot of time.
 
 ---
 
-## Part IV — Architecture Philosophies
-
 ### Unix Philosophy
 
 From the original Bell Labs papers, notably *Software Tools* (Kernighan & Plauger, 1976) and *The UNIX Programming Environment* (Kernighan & Pike, 1984). Read these before the blog posts about them.
@@ -405,6 +470,9 @@ The hard truths, largely from Werner Vogels' *ACM Queue* "Life Beyond Distribute
 - 🔍 **CQRS** — See above. Genuine when read and write shapes diverge; a doubling of code if they don't.
 - 🔍 **Materialized Views / Derived State** — Precompute for reads, and own the refresh path explicitly.
 - 🔍 **The Log as the Source of Truth** — Replay is the ultimate "reproducible bug report."
+
+---
+
 
 ---
 
@@ -566,7 +634,69 @@ Kent C. Condie's *Effective Go*, the Code Review Comments, and Rob Pike's talks.
 
 ---
 
-## Part VI — Performance & Scale
+
+---
+
+## Part VI — Release, Deployment & Rollout
+
+How code becomes running software, and — the part everyone under-plans — how it comes back off again.
+
+- ✅ **Rollback Is a Design Requirement, Not an Ops Task** — If you can't roll back in under five minutes, the design is incomplete. "Deploying is easy, un-deploying is hard" is the correct prior. *So what:* rollback difficulty is a property of your schema changes and your data model, decided months earlier.
+- ✅ **Expand, Migrate, Contract** — Never rename or drop a column in one deploy. **Expand:** add the new thing, write to both, backfill. **Migrate:** dual-read/single-write, move readers over, verify. **Contract:** stop writing the old, then remove it — in a *later* release. *(Fowler, "Parallel Change"; also the expand/contract pattern Martin Thompson popularized.)* The rule: **a deploy is always backward-compatible with the currently running version**, because during a rollout both exist simultaneously.
+- ✅ **Feature Flags for Risk, Not for Control Flow** — A flag is the right tool to separate *deploying* from *releasing*, and to enable instant kill. ⚠️ It is the wrong tool for business logic: every flag is a permanent conditional and a combinatorial testing problem. **Delete the flag when the decision is made** — a flag nobody removes becomes a permanent `if` and a permanent untested path. *(The "flag rot" problem; see "The Four-Tenths Rule" in Split.io's writing for a good treatment.)*
+- ✅ **Progressive Delivery** — Canary, blue-green, or percentage rollout: ship to 1% and watch error rate, latency, and business metrics before the other 99%. *So what:* the question "is this change safe?" is answered empirically instead of by argument.
+- ✅ **The Deploy and the Release Are Different Events** — Deploying is a technical act; releasing is a business decision. Conflating them means either you're blocked on a deploy window, or you ship dark code to everyone by accident. Feature flags and staged rollouts are how you separate them.
+- ✅ **Automated, Reproducible, Hermetic Builds** — The artifact should be buildable from source on any machine, with pinned dependencies and a lockfile committed. "Works on my machine" is usually a dependency-resolution problem. *Why it matters more than it sounds:* an unreproducible build is an unauditable one, and you cannot roll back to something you cannot rebuild.
+- ✅ **Same Artifact, Every Environment** — Build once, promote that exact artifact through dev → staging → prod. Rebuilding per environment means what you tested is not what you shipped. *(The Twelve-Factor "build, release, run" separation.)*
+- ✅ **Backwards Compatibility as a Discipline** — Assume a client — yours, someone else's, or a background job that hasn't restarted — is still running the old code. This single assumption eliminates a whole class of 3am failures.
+- ⚖️ **Semantic Versioning** — `MAJOR.MINOR.PATCH` with real meaning: break the API → major, add backward-compatible functionality → minor, fix only → patch. *Practical status:* widely claimed, routinely ignored, and it only works if consumers trust it. **A major version of 0.x is a free pass**; a version 1.0 is a promise. *(Tom Preston-Werner.)*
+- 🔍 **Blue-Green** — Two identical environments, switch traffic atomically. Instant rollback, at the cost of double capacity and the classic trap of non-idempotent production side effects.
+- 🔍 **Zero-Downtime Migrations** — All schema changes must be compatible with *both* versions simultaneously. Add-then-remove beats drop-then-add, always.
+- 🔍 **Configuration Is Not Deployment** — Config changes are riskier than code changes because they bypass review, tests, and often audit. Treat them as production changes: versioned, reviewed, and observable.
+- 🔍 **Release Trains and Scheduled Releases** — Batch many changes on a fixed cadence (weekly/monthly) rather than releasing whenever a feature finishes. *Why it's good:* limited blast radius, predictable on-call, and far fewer integration surprises. *Why it's contested:* it adds delay for the team that finished early.
+- 🔍 **Database Migrations Are Deployments** — A schema change that breaks a rollback is not a reversible change. This is the single most common reason a "safe" deploy becomes an incident requiring a restore.
+- 💬 **"You can't deploy without a rollback plan."** — If the plan is "restore from backup," your RTO is measured in hours and you've already lost the data written since.
+
+
+---
+
+## Part VII — Operations & Observability
+
+The system is running. Now the work changes character: you are no longer writing software, you are running it and learning what you didn't know.
+
+- ✅ **Observability > Monitoring** — Monitoring asks known questions ("is the CPU high?"). Observability lets you ask novel questions about a system you didn't anticipate failures for. **Three pillars: metrics, logs, traces.** *(Charity Majors' argument, and the OpenTelemetry standard that is the practical convergence of all three.)* *The design test:* can you debug a novel failure without reproducing it first?
+- ✅ **Instrument for the Question You Haven't Asked Yet** — Log the things that, if they went wrong, you'd need to know and wouldn't have. Correlation IDs, actor, resource, and outcome on every state transition. *Why:* the one log line you didn't write is the one that ends the investigation.
+- ⚠️ **Cardinality Is a Budget** — Every unique label combination is a new time series. A `user_id` or `request_id` label will melt your metrics backend. **Metrics: bounded cardinality. Traces/logs: unbounded.** Getting this backwards is the most common self-inflicted observability outage. (Same for the logs equivalent: unbounded log volume has a real dollar cost.)
+- ✅ **Measure the User, Not the Machine** — Request rate, error rate, and duration (the RED method), or availability, latency, and throughput (the SLI set). CPU, memory, and GC are *diagnostics* — they help you explain a symptom, they're not the thing users experience. (Google SRE Workbook ch. 5.)
+- ✅ **Trace Across Service Boundaries** — Distributed tracing is the only way to find the slow dependency when you have eight services. Propagate context explicitly; don't infer it from timestamps.
+- ✅ **Structured Logging Beats String Logging** — Emit `key: value` or JSON, not interpolated prose. Prose logs can't be queried, filtered, or aggregated; structured logs can. *(The rule: if you can't grep it, you're reading it, not querying it.)*
+- ✅ **Redundancy Is Not Backup** — A replica is not a backup. **Test your restore.** The most expensive finding in any postmortem is "we had backups we had never restored." *(The 3-2-1 rule: 3 copies, 2 media types, 1 offsite. And verify the third is genuinely offsite — same-account backups are not a plan.)*
+- ✅ **Define RTO and RPO Before You Need Them** — **RTO:** how long can you be down? **RPO:** how much data can you lose? These two numbers determine every architecture decision about replication and backups, and they come from the business, not engineering. *So what:* "we didn't think about it until we needed it" is the answer that costs the most.
+- ⚖️ **Active-Active vs. Active-Passive** — Active-active gives lower RTO and much higher complexity (conflict resolution, divergent writes). Active-passive is simpler and has a real failover step that must be *tested*. Choose on RTO/RPO, not on aspiration.
+- ✅ **Capacity Planning From Trends, Not Spikes** — Project from the trend line and the known roadmap, not last month's peak. Include the headroom for the growth you've already committed to, and remember that autoscaling solves *throughput*, not *per-request cost* or *downstream saturation*.
+- ✅ **Graceful Degradation** — When a dependency fails, shed load rather than collapse. Return cached or partial results, queue for later, disable the expensive feature. *Why:* total unavailability is a worse user experience than a partial one, and partial failure is much easier to design for than full.
+- ✅ **The Runbook Must Be Executable by a Tired Human at 3am** — Include the exact commands, the exact dashboard links, and the "if this, then that" decision points. A runbook that says "investigate the issue" is not a runbook.
+- ✅ **You Build It, You Run It** — Shared responsibility for operations, not a separate "ops" team downstream. (Vogels.) Teams that ship but never operate make different mistakes, and the two feedback loops are the point. *The staffing and rotation consequences live in Part X.*
+- ✅ **Blameless Postmortems** — When a system fails, the human is usually working with the information the system gave them (or didn't). Blame stops reporting; blameless postmortems find the real cause. (John Allspaw, 2012; SRE Book ch. 1.) Write them for the *next* incident, not the last one.
+- ✅ **Error Budgets** — SLOs give you a budget; when you're within it, ship; when you're over it, fix reliability. This turns "reliability vs. features" from an argument into arithmetic. (Google SRE.)
+- ✅ **Alert on Symptoms, Not Causes** — Alert on what your users care about (latency, error rate), not internal causes (CPU high). CPU isn't a problem until latency is. (Google SRE Workbook ch. 5.)
+- ✅ **Every Alert Should Be Actionable and Owned** — If an alert needs no action, delete it. Alert fatigue trains people to ignore alerts, which is how you miss the real one.
+- ✅ **Runbooks for Known Failures** — The best fix for a 3am page is a step-by-step document written calmly in advance. Automate the runbook later.
+- ✅ **Practice the Failure** — Game days, chaos experiments, fire drills. The point isn't to find bugs, it's to find the runbook gaps and the missing permissions. *An untested recovery path is a hypothesis.*
+- ✅ **Toil Is a Bug** — Anything manual, repetitive, and automatable shouldn't be a human's permanent job. Google SRE's "eliminating toil" is the clearest framing. (The Site Reliability Book ch. 5.)
+- ✅ **On-call Should Be Sustainable** — Rotation limits, handoffs, and comp are real engineering constraints. A team burning out is a reliability risk, not just a wellbeing one.
+- ✅ **Load-Shedding and Backpressure Are Designed, Not Discovered** — Overload behavior that you didn't design, you discovered during the incident. Rate limits, concurrency caps, and queue bounds should exist and be set deliberately.
+- 🔍 **Health Endpoints That Actually Check Dependencies** — A liveness probe that returns "OK" while the database is unreachable just moves the failure from a clear error to a mysterious hang. **Liveness and readiness are different questions** and need different endpoints.
+- 🔍 **Synthetic Transactions** — A script that exercises the critical user journey from outside, on a schedule. It catches "the site is up but checkout is broken," which no internal metric will.
+- 🔍 **Audit Logging vs. Application Logging** — Security-relevant actions (auth, permission changes, data access) need a separate, tamper-evident, retained log. Assume your application logs are not sufficient for an investigation.
+- 💬 **"Hope is not a strategy."** — Every unproven assumption in your architecture is a page at 3am.
+- 💬 **"Hope is not a strategy."** — Every unproven assumption in your architecture is a page at 3am.
+- 💬 **"It's not done until it runs in production and someone's watching."**
+
+
+---
+
+## Part VIII — Performance & Scale
 
 - ✅ **Measure First, Optimize Second** — Without a measurement, you're guessing, and guesses are usually wrong. Profiling tools exist; use them. (Brian Kernighan: "Unix systems used to be slow, and then people started using profilers to find the bottlenecks.")
 - ✅ **Amdahl's Law** — Optimizing a 5% component buys you 5%. Find out where the time actually goes first. Optimize the common path; the rare path is where latency *feels* bad but costs nothing in aggregate.
@@ -583,7 +713,10 @@ Kent C. Condie's *Effective Go*, the Code Review Comments, and Rob Pike's talks.
 
 ---
 
-## Part VII — Security Mindset
+
+---
+
+## Part IX — Security Mindset
 
 This is where software engineering becomes responsible engineering. None of the below is optional, and none is a "nice-to-have."
 
@@ -607,7 +740,10 @@ This is where software engineering becomes responsible engineering. None of the 
 
 ---
 
-## Part VIII — Team & Process Mentalities
+
+---
+
+## Part X — Team & Process Mentalities
 
 ### Agile Flavors
 
@@ -619,6 +755,9 @@ This is where software engineering becomes responsible engineering. None of the 
 - ✅ **Retrospectives** — A cadence for improving how the team works, not just the work. Pointless only if the same issue keeps recurring and nothing changes.
 - ✅ **XP Practices Still Hold Up** — Pair programming, test-driven development, refactoring, continuous integration, simple design, collective code ownership, whole-team availability. (Kent Beck, 1999.) This is a great starting read for engineering practice independent of framework.
 - ⚖️ **Estimating (Story Points, Velocity)** — Useful for *conversation* about relative size, less useful as a *promise*. Story points measure relative, team-specific effort. Treating them as hours reliably misleads. (Never convert points to dates.)
+- ✅ **The Team Should Own the Whole Thing** — "You build it, you run it" (Werner Vogels). Teams that only ship don't learn what they built; on-call without shipping builds bad instincts. Not a slogan — a staffing and rotation decision. *The operating detail lives in Part VII; the ownership model is here.*
+- ✅ **A Blameless Culture Extends Past Incidents** — The posture that makes postmortems productive (Part VII) applies equally to code review, design discussion, and estimates. If people are punished for surfacing a problem, you lose the problems. If they're rewarded for surfacing one early, you get them while they're still cheap.
+- ✅ **Review Latency Is a Team Health Metric** — A review queue is a deployment blocker and a leading indicator that the team is over-committed. Track it like a build failure, because it degrades the same way: quietly first, then all at once.
 - ✅ **The Team Should Own the Whole Thing** — "You build it, you run it" (Werner Vogels). Teams that only ship don't learn what they built; on-call without shipping builds bad instincts. Not a slogan — a staffing and rotation decision.
 - 🔍 **Kanban WIP Limits** — The most underrated practice: limiting work-in-progress surfaces the actual bottleneck faster than any retrospective.
 - 🔍 **Continuous Integration and Continuous Delivery** — Integrate at least daily; a merge queue is a strong pattern. Deploy when ready, not in batches — small deployments are less risky, not more.
@@ -646,22 +785,6 @@ Fowler's framing, read it directly: [Is High Quality Software Worth the Cost?](h
 - 🔍 **Spikes** — Timebox to answer a specific question, then throw away the code. Cheap way to buy certainty.
 - 🔍 **Proofs of Concept vs. Spikes** — PoCs are "does it work at all," spikes are "how would we do it." Both are throwaway. Neither should silently become production code without a rewrite.
 
-### On-call, Support, and Ownership
-
-- ✅ **You Build It, You Run It** — Shared responsibility for operations, not a separate "ops" team downstream. (Vogels.) Teams that ship but never operate make different mistakes, and the two feedback loops are the point.
-- ✅ **Blameless Postmortems** — When a system fails, the human is usually working with the information the system gave them (or didn't). Blame stops reporting; blameless postmortems find the real cause. (John Allspaw, 2012; SRE Book ch. 1.)
-- ✅ **Error Budgets** — SLOs give you a budget; when you're within it, ship; when you're over it, fix reliability. This turns "reliability vs. features" from an argument into arithmetic. (Google SRE.)
-- ✅ **Alert on Symptoms, Not Causes** — Alert on what your users care about (latency, error rate), not on internal causes (CPU high). CPU isn't a problem until latency is. (Google SRE Workbook ch. 5.)
-- ✅ **Every Alert Should Be Actionable and Owned** — If an alert needs no action, delete it. Alert fatigue trains people to ignore alerts, which is how you miss the real one.
-- ✅ **Runbooks for Known Failures** — The best fix for a 3am page is a step-by-step document written calmly in advance. Automate the runbook later.
-- ✅ **Practice the Failure** — Game days, chaos experiments, fire drills. The point isn't to find bugs, it's to find the runbook gaps and the missing permissions.
-- ✅ **Toil Is a Bug** — Anything manual, repetitive, and automatable shouldn't be a human's permanent job. Google SRE's "eliminating toil" is the clearest framing. (The Site Reliability Book ch. 5.)
-- ✅ **On-call Should Be Sustainable** — Rotation limits, handoffs, and comp are real engineering constraints. A team burning out is a reliability risk, not just a wellbeing one.
-- 🔍 **Observability > Monitoring** — Logs, metrics, traces, and profiles. The three pillars. (Charity Majors' "Observability is Superior to Monitoring" is the sharpest modern argument.) *Design question:* can you debug this system without reproducing the bug?
-- 🔍 **SLOs, SLIs, and Error Budgets** — Define the Service Level *Indicator*, set an *Objective*, spend the *Budget*. A great mental model for reliability conversations. (Google SRE ch. 4.)
-- 💬 **"Hope is not a strategy."** — The whole point of an on-call rotation.
-- 💬 **"It's not done until it runs in production and someone's watching."**
-
 ### Product & User Empathy
 
 - ✅ **Users Don't Want Features; They Want Problems Solved** — Start with the job to be done, not the feature list. (Clayton Christensen, *The Innovator's Dilemma*; Teresa Torres' "The Mom Test" for the interviewing discipline.)
@@ -678,7 +801,70 @@ Fowler's framing, read it directly: [Is High Quality Software Worth the Cost?](h
 
 ---
 
-## Part IX — Software as a Craft
+
+---
+
+## Part XI — Cross-Cutting Concerns
+
+These cut across every part of the lifecycle and every language. They are easy to defer and expensive to retrofit, which is exactly why they belong in a catalog like this.
+
+### Internationalization & Localization
+
+- ✅ **Design for i18n From the Start, or Never** — Retrofitting i18n is a rewrite of every user-facing string, every date, every layout, and every test. The four hard requirements from day one: **no string concatenation in the UI layer, no string comparison, ISO-8601/CLDR formats, and UTF-8 everywhere including the database connection.** *(The "pseudo-localization" technique — expanding every string ~30% and accenting characters — surfaces layout breakage before a translator ever sees it.)*
+- ✅ **English Text ≠ One String** — Grammatical gender, plural rules (six forms in Russian, two in English), and word order are not edge cases in most of the world. This is why `"you have 1 item"` / `"you have {n} items"` doesn't translate, and why you need real pluralization support, not `if (n == 1)`.
+- ✅ **Locale Is Part of the Data Model, Not a Setting** — `1032.5` in the US is `1.032,5` in Germany. Number, date, time, currency, and address formats all vary by locale, and so do legal conventions around them. Store the *instant* in UTC and format at the edge; store the *amount* as integer minor units or decimal, never a float.
+- ✅ **Right-to-Left Is a Layout Problem, Not a Translation Problem** — Mirroring, bidi text, and logical-vs-physical properties affect the whole UI. If you hard-coded `margin-left`, you don't support RTL — and you didn't know you cared until a market required it.
+
+### Accessibility
+
+- ✅ **Accessibility Is a Requirement, Not a Feature** — WCAG conformance is a legal and ethical obligation in most jurisdictions (ADA, EAA, the European Accessibility Act which took effect June 2025), and it's the difference between who can use your product and who can't. *So what:* keyboard navigability, focus management, semantic markup, contrast ratios, and screen-reader support are the baseline, and automated checks catch roughly a third of issues — meaning **the other two-thirds need manual testing with real assistive technology.**
+- ✅ **Test With a Keyboard, First** — If you can't use it without a mouse, it's broken for a real class of users, and you've found a bug in about two minutes. This is the cheapest accessibility test there is.
+- 🔍 **Prefer Native Semantics Over ARIA** — `<button>` is focusable, announced, and keyboard-activatable for free. A `<div onclick>` is none of those, and ARIA is how you rebuild them badly. **No ARIA is better than bad ARIA.** *(W3C WAI-ARIA Authoring Practices.)*
+- 🔍 **Automated Checkers Are Necessary, Not Sufficient** — axe, Lighthouse, and eslint-plugin-jsx-a11y catch the machine-detectable minority. Alt text quality, logical reading order, and whether error messages make sense to a screen-reader user require a human.
+
+### Configuration & Secrets
+
+- ✅ **Configuration Is Code** — Config belongs in version control, reviewed like code, validated on startup, and tested. Env vars scattered through a shell history are not configuration management. *(The Twelve-Factor "config in the environment" is a decent rule; the stronger version is config-as-declared-and-validated-file.)*
+- ✅ **Fail Fast on Bad Config** — Validate all configuration at startup and refuse to boot. Discovering a typo'd env var at 2am under load is an availability incident you chose.
+- 🔍 **Twelve-Factor's Config Typology** — Config that *varies* between deploys (credentials, hostnames) is env-var territory; config that *doesn't* (which framework to use, a routing table) belongs in code. Mixing the two produces config that's harder to reason about than either approach alone. (Adams, 2011.)
+- 🔍 **Feature-Specific Config Files** — One file per concern, parsed strictly, errors naming the exact key. §Twelve-Factor.
+
+### Dependency Management
+
+- ✅ **Dependencies Are Code You Didn't Write** — Every one runs with your privileges and can be removed or compromised. So: **minimize the count, pin the versions (commit lockfiles), scan for vulnerabilities, and budget time for upgrades.** *So what:* a transitive vulnerability in a four-year-old package is your incident, regardless of whether you ever called it directly.
+- ✅ **The Upgrade Is the Work** — Keeping dependencies current is not overhead; it's the alternative to a painful multi-week migration with no test coverage. *Rule:* continuously updated dependencies, or a scheduled quarterly upgrade budget. "We'll upgrade when we need the feature" always costs more.
+- ⚖️ **Build vs. Buy, and the NIH Reflex** — Buying is usually right for commodity, well-maintained, security-sensitive components (crypto, auth, PDF, database drivers) and wrong for your core differentiator. (Dylan Beattie's framing: build only what you'd actually sell.) **The failure mode in both directions is the same** — neither decision is revisited after the cost lands.
+- 🔍 **Vendoring / Forking as a Last Resort** — Vendoring a dependency gives you control and gives away upstream fixes. It's a trade, not a free win, and it should be recorded as a decision with a review date.
+
+### Dependencies Between the Concerns
+
+- 💬 **"These are all 'later' problems, and 'later' is the most expensive time."** — i18n, accessibility, auth, and observability are the canonical examples of work that is cheap in week one and ruinous in year two.
+- 💬 **"Cross-cutting concerns are cross-cutting because they cross every layer."** — The cost isn't the work, it's the number of places you have to remember to do it.
+
+
+---
+
+## Part XII — Retirement & Decommission
+
+The part of the lifecycle that most catalogs skip, and the one your future self inherits. Every system gets deleted eventually; the only question is whether that's a plan or an archaeology project.
+
+- ✅ **Sunsetting Is a Feature** — A system with a known, announced, supported end date is a *constrained* system: you can say no to new features, delete code instead of patching it, and plan your own migration. A system with no end date accumulates features forever, each one a liability. *So what:* "we'll rewrite it eventually" is a plan; "we'll deprecate it on date X" is a plan you can budget for.
+- ✅ **Deprecation Needs a Policy, Not a Conversation** — A real deprecation has: a published end-of-life date, a migration path, a named owner, a communication channel, and a removal ticket. *(Sunset RFC process; the "three-strikes" communication pattern — announce, remind, remove.)* ⚠️ The usual failure is announcing a deprecation with no date, which is just a rumor with extra steps.
+- ✅ **The Second-System Effect** — The rewrite is the trap. The requirements are *least* known exactly where they're needed most, the old system encodes undocumented edge cases discovered over years, and the team's attention is split. *(Brooks, *The Mythical Man-Month*.)* **Prefer incremental replacement** — the Strangler Fig: build the new thing alongside, route traffic over, and delete the old capability as each piece migrates. *(Fowler, "StranglerFigApplication," 2004.)*
+- ✅ **Migrate the Data Last** — Moving the data before the reads are proven on the new system is how rewrites fail. Route reads first, verify, then move writes, then cut over. (Same expand/migrate/contract discipline, applied to an entire system.)
+- ✅ **Deleting Code Is a Feature Delivered** — Every deleted service is one less thing to patch, deploy, monitor, secure, and explain. Deletion is the highest-ROI work in most large codebases, and the most consistently deferred because it delivers no visible feature. *So what:* if your backlog is full and your system is fragile, the highest-priority ticket may be a deletion.
+- ✅ **Data Retention Is a Legal and Architectural Constraint** — You cannot delete data that a regulation requires you to keep, and you *must* delete data a regulation requires you to erase. Both constraints shape your schema, your backups, and your migrations. *So what:* "delete the account" is not `DROP TABLE`; it's a decision about PII in backups, logs, analytics pipelines, and third parties — a real distributed-deletion problem, not a code deletion problem.
+- ✅ **A Backup You Cannot Restore Is Not a Backup** — Retention policies and restore procedures must be *tested* on the same clock as your compliance obligation. "We have seven years of retention" is a claim about a tape library, not about a working restore.
+- ⚖️ **Refactor vs. Rewrite** — Refactoring changes structure without changing behavior and is safe incrementally. A rewrite changes behavior and everything else. **The decisive question is not how bad the old system is, but whether you can characterize the old system's behavior well enough to be confident the new one matches** — and that characterization is usually the expensive, unglamorous part that gets skipped.
+- 🔍 **Kill Switches and Graceful Shutdown** — Before decommissioning a dependency or a feature, know how to turn it off safely: drain connections, finish in-flight work, persist state. A shutdown that loses data turns a planned migration into an incident.
+- 🔍 **Zombie Systems** — Systems nobody owns, nobody uses, and nobody dares delete because nobody knows who depends on them. *The only cure:* actively hunt them (access logs, network flows, ownership metadata) and assign an owner with a date. They are pure cost.
+- 💬 **"The best code is the code you deleted."** — Deletion is a feature with a measurable outcome: fewer lines to maintain, fewer CVEs to patch, fewer alerts to triage.
+- 💬 **"No system is permanent, and the ones that are, are maintained by people who never got to leave."**
+
+
+---
+
+## Part XIII — Software as a Craft
 
 ### Wisdom, Proverbs, Aphorisms
 
@@ -756,7 +942,10 @@ Rules that sound wise and are actually how projects fail. **Knowing these is as 
 
 ---
 
-## Part X — The Canon: Primary Sources
+
+---
+
+## Part XIV — The Canon: Primary Sources
 
 The best advice lives in a small number of primary sources. If you read these, you'll have covered most of the wisdom in this list with more nuance than any list can provide.
 
@@ -779,6 +968,15 @@ The best advice lives in a small number of primary sources. If you read these, y
 - *Effective Java* (3rd ed.) — Joshua Bloch. And *Effective Go*, *Rust API Guidelines*, *Eloquent JavaScript* for their own ecosystems.
 - *Structure and Interpretation of Computer Programs* — Abelson & Sussman. The SICP of *ideas*; best for thinking about computation, not for a job.
 - *Programming Pearls / Programming in the Large* — Jon Bentley / John Brooks. Column and essay collections with the occasional gem.
+
+**Product, Requirements & Release**
+- *User Story Mapping* — Jeff Patton (2005). The best practical book on slicing a product into releasable vertical slices; the antidote to building in layers.
+- *The Mom Test* — Rob Fitzpatrick (2013). How to talk to users without leading them. Short, and the only requirements book here you'll finish.
+- *Inspired* — Marty Cagan (2017). Product discovery, risk assessment, and why solutioning before you understand the problem is the expensive mistake. (Cagan's later *Escaping the Build Trap* is the sequel.)
+- *Shape Up* — Ryan Singer (2018), free online. The most concrete treatment of scoping as a discipline: shaped work, hard timeboxes, and the "rabbit holes" list. Read this if your planning process feels perpetually late.
+- *Continuous Delivery* — Jez Humble & David Farley (2010). The canonical book on making deployment routine and boring. The source of most Part VI.
+- *Accelerate* — Forsgren, Humble, Kim (2018). The empirical research on what makes teams fast — and it is not most of what people guess.
+- *Semantic Versioning* (semver.org) and the *Keep a Changelog* format. Small, free, and the two conventions worth standardizing on before you argue about them again.
 
 **Distributed Systems & Reliability**
 - *The Site Reliability Book* — Beyer, Jones, Petoff, Murphy (2016). Free online. The best practical resource for running systems.
@@ -814,7 +1012,11 @@ The best advice lives in a small number of primary sources. If you read these, y
 
 ---
 
+
+---
+
 ## Verifying Quotes and Claims
+
 
 This list is opinionated, but it should not be *sloppy*. Two categories of sourcing problem show up in software-idiom lists, and both are worth naming:
 
@@ -836,9 +1038,14 @@ This list is opinionated, but it should not be *sloppy*. Two categories of sourc
 
 ---
 
+
+---
+
 ## Contributing
 
 This list lives by being argued over. Contributions welcome, but with a bar:
+
+**Where it goes.** Every entry belongs to a lifecycle stage (see the Lifecycle Map). If you can't name the stage, that's a signal worth thinking about — most weak advice is advice for no particular moment in the process. If a stage is thin, prefer filling a thin stage over adding a fifth opinion to a well-covered one; this document was substantially more useful after Part XII (retirement) than it was after another ten design principles.
 
 **A good addition** has (at least):
 - a **clear one-line definition** that a competent engineer would agree with;
@@ -850,7 +1057,8 @@ This list lives by being argued over. Contributions welcome, but with a bar:
 **Please don't add**:
 - framework- or library-specific "best practices" that go stale in six months (🔍 exists for genuinely durable technique, not for a tool's current API);
 - advice with no mechanism ("write better code," "care about quality") — if you can't say *why* it works, it's a slogan;
-- something already covered — check the ❌ already-idiomatic sections first.
+- something already covered — search the part it belongs to first (the Lifecycle Map says which);
+- an entry with no obvious home — if you can't place it in the lifecycle, ask whether it earns a place at all.
 
 ### Quick template
 
